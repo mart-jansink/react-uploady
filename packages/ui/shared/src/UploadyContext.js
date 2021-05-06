@@ -11,10 +11,11 @@ import type { UploadyContextType, InputRef } from "./types";
 const UploadyContext: React$Context<?UploadyContextType> = React.createContext<?UploadyContextType>(null);
 
 const NO_INPUT_ERROR_MSG = "Uploady - Context. File input isn't available";
+const INPUT_ATTRIBUTES = [ "capture", "multiple", "accept", "webkitdirectory" ];
 
 export const createContextApi =
     (uploader: UploaderType, internalInputRef: ?InputRef): UploadyContextType => {
-        let fileInputRef, showFileUploadOptions;
+        let fileInputRef, showFileUploadOptions, currentAttributes;
 
         if (internalInputRef) {
             fileInputRef = internalInputRef;
@@ -38,6 +39,14 @@ export const createContextApi =
 
             //allow components like upload button to override options
             showFileUploadOptions = addOptions;
+            currentAttributes = {};
+            for (let i = 0; i <INPUT_ATTRIBUTES.length; i++) {
+                const attribute = INPUT_ATTRIBUTES[i];
+                currentAttributes[attribute] = input[attribute];
+                if (attribute in addOptions ) {
+                    input[attribute] = addOptions[attribute];
+                }
+            }
 
             input.removeEventListener("change", onFileInputChange);
             input.addEventListener("change", onFileInputChange);
@@ -56,6 +65,12 @@ export const createContextApi =
             );
 
             input.removeEventListener("change", onFileInputChange);
+
+            for (let i = 0; i <INPUT_ATTRIBUTES.length; i++) {
+                const attribute = INPUT_ATTRIBUTES[i];
+                input[attribute] = currentAttributes[attribute];
+            }
+            currentAttributes = null;
 
             const addOptions = showFileUploadOptions;
             showFileUploadOptions = null;
